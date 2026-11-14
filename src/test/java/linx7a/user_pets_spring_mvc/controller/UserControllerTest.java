@@ -21,21 +21,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class UserControllerTest {
+
+    private static final String USER_NAME = "user";
+    private static final String USER_EMAIL = "user@email.ru";
+    private static final Integer USER_AGE = 20;
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private UserService userService;
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    void shouldSuccessCreateUser() throws Exception {
-        var user = new UserDto(
+    private UserDto buildUser() {
+        return new UserDto(
                 null,
-                "some-name",
-                "user@email.ru",
-                20,
+                USER_NAME,
+                USER_EMAIL,
+                USER_AGE,
                 new ArrayList<>()
         );
+    }
+
+    @Test
+    void shouldSuccessCreateUser() throws Exception {
+        var user = buildUser();
         String userJson = objectMapper.writeValueAsString(user);
         String createUserJson = mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -61,8 +70,8 @@ class UserControllerTest {
         var user = new UserDto(
                 null,
                 null,
-                "user@email.ru",
-                20,
+                USER_EMAIL,
+                USER_AGE,
                 new ArrayList<>()
         );
 
@@ -78,13 +87,7 @@ class UserControllerTest {
 
     @Test
     void shouldSuccessSearchUserById() throws Exception {
-        var user = new UserDto(
-                null,
-                "some-name",
-                "user@email.ru",
-                20,
-                new ArrayList<>()
-        );
+        var user = buildUser();
         var createdUser = userService.createUser(user);
         String foundUserJson = mockMvc.perform(get("/api/users/{id}", createdUser.id()))
                 .andExpect(status().isOk())
@@ -107,13 +110,7 @@ class UserControllerTest {
 
     @Test
     void shouldSuccessDeleteUser() throws Exception {
-        var user = new UserDto(
-                null,
-                "some-name",
-                "user@email.ru",
-                20,
-                new ArrayList<>()
-        );
+        var user = buildUser();
         var createdUser = userService.createUser(user);
         mockMvc.perform(delete("/api/users/{id}", createdUser.id()))
                 .andExpect(status().isNoContent());
@@ -124,28 +121,22 @@ class UserControllerTest {
 
     @Test
     void shouldSuccessUpdateUser() throws Exception {
-        var user = new UserDto(
-                null,
-                "some-name",
-                "user@email.ru",
-                20,
-                new ArrayList<>()
-        );
+        var user = buildUser();
         var createdUser = userService.createUser(user);
 
         var newUser = new UserDto(
                 null,
                 "other-name",
-                "user@email.ru",
-                20,
+                USER_EMAIL,
+                USER_AGE,
                 new ArrayList<>()
         );
 
         String newUserJson = objectMapper.writeValueAsString(newUser);
         String updatedUserJson = mockMvc.perform(put("/api/users/{id}", createdUser.id())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(newUserJson)
-        )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newUserJson)
+                )
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()

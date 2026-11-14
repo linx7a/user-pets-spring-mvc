@@ -22,6 +22,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class PetControllerTest {
+
+    private static final String OWNER_NAME = "owner";
+    private static final String OWNER_EMAIL = "owner@email.ru";
+    private static final Integer OWNER_AGE = 30;
+    private static final String PET_NAME = "pet";
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -30,18 +36,22 @@ class PetControllerTest {
     private PetService petService;
     ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    void shouldSuccessCreatePet() throws Exception {
-        var owner = userService.createUser(new UserDto(
+    private UserDto createOwner() {
+        return userService.createUser(new UserDto(
                 null,
-                "owner",
-                "owner@email.ru",
-                30,
+                OWNER_NAME,
+                OWNER_EMAIL,
+                OWNER_AGE,
                 new ArrayList<>()
         ));
+    }
+
+    @Test
+    void shouldSuccessCreatePet() throws Exception {
+        var owner = createOwner();
         var pet = new PetDto(
                 null,
-                "pet",
+                PET_NAME,
                 owner.id()
         );
         String petJson = objectMapper.writeValueAsString(pet);
@@ -67,13 +77,7 @@ class PetControllerTest {
 
     @Test
     void shouldNotCreatePetWithInvalidData() throws Exception {
-        var owner = userService.createUser(new UserDto(
-                null,
-                "owner",
-                "owner@email.ru",
-                30,
-                new ArrayList<>()
-        ));
+        var owner = createOwner();
         var pet = new PetDto(
                 null,
                 null,
@@ -93,7 +97,7 @@ class PetControllerTest {
     void shouldReturnNotFoundWhenOwnerDoesNotExist() throws Exception {
         var pet = new PetDto(
                 null,
-                "pet",
+                PET_NAME,
                 Long.MAX_VALUE
         );
         String petJson = objectMapper.writeValueAsString(pet);
@@ -106,16 +110,10 @@ class PetControllerTest {
 
     @Test
     void shouldSuccessDeletePet() throws Exception {
-        var owner = userService.createUser(new UserDto(
-                null,
-                "owner",
-                "owner@email.ru",
-                30,
-                new ArrayList<>()
-        ));
+        var owner = createOwner();
         var pet = petService.createPet(new PetDto(
                 null,
-                "pet",
+                PET_NAME,
                 owner.id()
         ));
 
